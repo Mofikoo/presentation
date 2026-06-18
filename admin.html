@@ -160,7 +160,6 @@
       }
 
       const fullLink = `${ANIMATOR_PAGE_URL}?token=${data.token}`;
-      alert("Lien généré : " + fullLink);
       const expiresDate = new Date(data.expiresAt).toLocaleString("fr-FR");
 
       resultDiv.innerHTML = `
@@ -190,7 +189,6 @@
   function copyLink() {
     const link = document.getElementById("generatedLink").textContent;
     navigator.clipboard.writeText(link);
-    alert("Lien copié !");
   }
 </script>
 
