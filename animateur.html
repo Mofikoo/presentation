@@ -127,10 +127,11 @@
   }
 
   async function verifyAndLoad() {
-    alert("URL fonction : " + EDGE_FUNCTION_URL);
-    alert("URL : " + EDGE_FUNCTION_URL + "\nToken : " + token);
+    //alert("URL fonction : " + EDGE_FUNCTION_URL);
+    //alert("URL : " + EDGE_FUNCTION_URL + "\nToken : " + token);
     try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
+        alert("Envoi requête vers : " + EDGE_FUNCTION_URL);
+        const response = await fetch(EDGE_FUNCTION_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -153,7 +154,7 @@
       setInterval(() => recheckStillValid(), 5 * 60 * 1000);
 
     } catch (err) {
-        alert("Erreur : " + err.message);
+        alert("Erreur détaillée : " + err.message + "\nType : " + err.name + "\nURL : " + EDGE_FUNCTION_URL);
       mainContainer.innerHTML = '<div class="status-message">Erreur de connexion. Réessayez plus tard.</div>';
     }
   }
