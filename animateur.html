@@ -138,6 +138,7 @@
       });
 
       const data = await response.json();
+      alert("Réponse : " + response.status + " / " + JSON.stringify(data));
 
       if (!response.ok) {
         mainContainer.innerHTML = `<div class="status-message">${data.error || "Accès refusé."}</div>`;
@@ -150,6 +151,7 @@
       setInterval(() => recheckStillValid(), 5 * 60 * 1000);
 
     } catch (err) {
+        alert("Erreur : " + err.message);
       mainContainer.innerHTML = '<div class="status-message">Erreur de connexion. Réessayez plus tard.</div>';
     }
   }
