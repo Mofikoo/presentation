@@ -127,6 +127,7 @@
   }
 
   async function verifyAndLoad() {
+    alert("URL fonction : " + EDGE_FUNCTION_URL);
     alert("URL : " + EDGE_FUNCTION_URL + "\nToken : " + token);
     try {
       const response = await fetch(EDGE_FUNCTION_URL, {
