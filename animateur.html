@@ -130,23 +130,17 @@
     //alert("URL fonction : " + EDGE_FUNCTION_URL);
     //alert("URL : " + EDGE_FUNCTION_URL + "\nToken : " + token);
     try {
-        alert("Envoi requête vers : " + EDGE_FUNCTION_URL);
         const response = await fetch(EDGE_FUNCTION_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoaWpybWJmdGt1bmhyaXJpbHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTY0MzIsImV4cCI6MjA5NzM3MjQzMn0.9XmSW8cvNX7CWFQf5KCR0wDdBUXik7kzd80iLHEh_CQ"  // ← ajoute cette ligne
-        },
-        body: JSON.stringify({ token }),
-      });
-
-    const rawText = await response.text();
-        alert("Status : " + response.status + "\nRéponse : " + rawText.substring(0, 200));
-        return;
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoaWpybWJmdGt1bmhyaXJpbHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTY0MzIsImV4cCI6MjA5NzM3MjQzMn0.9XmSW8cvNX7CWFQf5KCR0wDdBUXik7kzd80iLHEh_CQ"  // ← ajoute cette ligne
+            },
+            body: JSON.stringify({ token }),
+        });
 
       const data = await response.json();
-      alert("Réponse : " + response.status + " / " + JSON.stringify(data));
-
+      
       if (!response.ok) {
         mainContainer.innerHTML = `<div class="status-message">${data.error || "Accès refusé."}</div>`;
         return;
@@ -189,7 +183,7 @@
         <div style="padding:56.25% 0 0 0; position:relative;">
             <iframe
             id="mainVideo"
-            src="https://drive.google.com/file/d/1zCPfjwwkhLRst73Yz-sNH0XHwnK604-G/view?usp=sharing/preview"
+            src="https://drive.google.com/file/d/1zCPfjwwkhLRst73Yz-sNH0XHwnK604-G/preview"
             style="position:absolute;top:0;left:0;width:100%;height:100%;"
             frameborder="0"
             allow="autoplay"
