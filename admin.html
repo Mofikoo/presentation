@@ -145,7 +145,10 @@
     try {
       const response = await fetch(EDGE_FUNCTION_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoaWpybWJmdGt1bmhyaXJpbHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTY0MzIsImV4cCI6MjA5NzM3MjQzMn0.9XmSW8cvNX7CWFQf5KCR0wDdBUXik7kzd80iLHEh_CQ"  // ← ajoute cette ligne
+        },
         body: JSON.stringify({ animatorName, durationHours, adminPassword }),
       });
 
