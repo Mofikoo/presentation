@@ -140,6 +140,10 @@
         body: JSON.stringify({ token }),
       });
 
+    const rawText = await response.text();
+        alert("Status : " + response.status + "\nRéponse : " + rawText.substring(0, 200));
+        return;
+
       const data = await response.json();
       alert("Réponse : " + response.status + " / " + JSON.stringify(data));
 
