@@ -160,6 +160,7 @@
       }
 
       const fullLink = `${ANIMATOR_PAGE_URL}?token=${data.token}`;
+      alert("Lien généré : " + fullLink);
       const expiresDate = new Date(data.expiresAt).toLocaleString("fr-FR");
 
       resultDiv.innerHTML = `
