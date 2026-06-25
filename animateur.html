@@ -112,17 +112,24 @@
   inset: 0;
   z-index: 1000;
   border-radius: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  background: black;
 }
-.video-wrapper.faux-fullscreen iframe {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0; left: 0;
-}
+
+/* Ce div intérieur doit aussi changer en mode agrandi */
 .video-wrapper.faux-fullscreen > div:first-child {
   padding-top: 0 !important;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.video-wrapper.faux-fullscreen iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
 }
 
@@ -249,9 +256,14 @@
     const wrapper = document.getElementById("videoWrapper");
     const btn = document.querySelector(".video-fullscreen-btn");
     const isFullscreen = wrapper.classList.toggle("faux-fullscreen");
+    
     btn.textContent = isFullscreen ? "✕ Réduire la vidéo" : "⛶ Agrandir la vidéo";
-
-    // Empêche le scroll de la page en arrière-plan quand la vidéo est agrandie
+    btn.style.position = isFullscreen ? "fixed" : "";
+    btn.style.top = isFullscreen ? "12px" : "";
+    btn.style.left = isFullscreen ? "50%" : "";
+    btn.style.transform = isFullscreen ? "translateX(-50%)" : "";
+    btn.style.zIndex = isFullscreen ? "1001" : "";
+    
     document.body.style.overflow = isFullscreen ? "hidden" : "";
   }
 
