@@ -7,7 +7,6 @@
 <style>
   * { box-sizing: border-box; }
 
-  /* Empêche la sélection de texte sur toute la page */
   body {
     user-select: none;
     -webkit-user-select: none;
@@ -36,17 +35,9 @@
     position: relative;
     background: black;
     border-radius: 8px;
-    overflow: hidden;
+    /* PAS de overflow:hidden ici, ça cassait le faux-fullscreen */
   }
 
-  video {
-    width: 100%;
-    display: block;
-    /* Empêche le menu contextuel natif "télécharger" sur certains navigateurs */
-    pointer-events: auto;
-  }
-
-  /* Watermark dynamique : nom + heure, en filigrane semi-transparent */
   .watermark {
     position: absolute;
     pointer-events: none;
@@ -58,9 +49,7 @@
     white-space: nowrap;
   }
 
-  .pdf-section {
-    margin-top: 32px;
-  }
+  .pdf-section { margin-top: 32px; }
   .pdf-page {
     position: relative;
     margin-bottom: 16px;
@@ -70,7 +59,7 @@
   .pdf-page img {
     width: 100%;
     display: block;
-    pointer-events: none; /* empêche drag/drop de l'image */
+    pointer-events: none;
   }
 
   .overlay-blocked {
@@ -94,65 +83,65 @@
   }
 
   .video-fullscreen-btn {
-  display: block;
-  margin: 8px auto 0;
-  padding: 8px 20px;
-  background: rgba(255,255,255,0.1);
-  color: white;
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-}
-.video-fullscreen-btn:hover { background: rgba(255,255,255,0.2); }
+    display: block;
+    margin: 8px auto 0;
+    padding: 8px 20px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .video-fullscreen-btn:hover { background: rgba(255,255,255,0.2); }
 
-/* Mode "plein écran fenêtré" : la vidéo prend toute la fenêtre */
-.video-wrapper.faux-fullscreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1000;
-  border-radius: 0;
-  background: black;
-}
+  /* Faux plein écran : la vidéo occupe toute la fenêtre du navigateur */
+  .video-wrapper.faux-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    z-index: 1000;
+    border-radius: 0;
+    background: black;
+    margin: 0;
+  }
 
-.video-wrapper.faux-fullscreen iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
+  .video-wrapper.faux-fullscreen #videoRatio {
+    padding-top: 0 !important;
+    position: absolute !important;
+    top: 0; left: 0;
+    width: 100% !important;
+    height: 100% !important;
+  }
 
-
+  .video-wrapper.faux-fullscreen iframe {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
 </style>
 </head>
 <body>
 
-<!-- Overlay plein écran si DevTools détecté ou contenu masqué pour autre raison -->
 <div class="overlay-blocked" id="blockOverlay">
-  <p>Le contenu a été masqué car une activité non autorisée a été détectée (outils développeur, capture d'écran, ou changement de fenêtre). Revenez sur cette page normalement pour continuer le visionnage.</p>
+  <p>Le contenu a été masqué car une activité non autorisée a été détectée. Revenez sur cette page normalement pour continuer le visionnage.</p>
 </div>
 
 <div class="container" id="mainContainer">
-  <div class="status-message" id="loadingMessage">Vérification de votre accès...</div>
+  <div class="status-message">Vérification de votre accès...</div>
 </div>
 
 <script>
-  // ============================================
-  // CONFIGURATION
-  // ============================================
-  // ⚠️ À MODIFIER : URL de ta Edge Function de vérification
   const EDGE_FUNCTION_URL = "https://jhijrmbftkunhririlqo.supabase.co/functions/v1/smooth-api";
+  const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoaWpybWJmdGt1bmhyaXJpbHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTY0MzIsImV4cCI6MjA5NzM3MjQzMn0.9XmSW8cvNX7CWFQf5KCR0wDdBUXik7kzd80iLHEh_CQ";
 
-  // ============================================
-  // 1. RÉCUPÉRATION DU TOKEN DEPUIS L'URL
-  // ============================================
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get("token");
-
   const mainContainer = document.getElementById("mainContainer");
 
   if (!token) {
@@ -162,32 +151,27 @@
   }
 
   async function verifyAndLoad() {
-    //alert("URL fonction : " + EDGE_FUNCTION_URL);
-    //alert("URL : " + EDGE_FUNCTION_URL + "\nToken : " + token);
     try {
-        const response = await fetch(EDGE_FUNCTION_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoaWpybWJmdGt1bmhyaXJpbHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTY0MzIsImV4cCI6MjA5NzM3MjQzMn0.9XmSW8cvNX7CWFQf5KCR0wDdBUXik7kzd80iLHEh_CQ"  // ← ajoute cette ligne
-            },
-            body: JSON.stringify({ token }),
-        });
+      const response = await fetch(EDGE_FUNCTION_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + ANON_KEY
+        },
+        body: JSON.stringify({ token }),
+      });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         mainContainer.innerHTML = `<div class="status-message">${data.error || "Accès refusé."}</div>`;
         return;
       }
 
       renderContent(data);
-      // On revérifie le token toutes les 5 minutes pendant le visionnage,
-      // au cas où il expire pendant que la personne regarde.
       setInterval(() => recheckStillValid(), 5 * 60 * 1000);
 
     } catch (err) {
-        alert("Erreur détaillée : " + err.message + "\nType : " + err.name + "\nURL : " + EDGE_FUNCTION_URL);
       mainContainer.innerHTML = '<div class="status-message">Erreur de connexion. Réessayez plus tard.</div>';
     }
   }
@@ -196,47 +180,41 @@
     const response = await fetch(EDGE_FUNCTION_URL, {
       method: "POST",
       headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoaWpybWJmdGt1bmhyaXJpbHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTY0MzIsImV4cCI6MjA5NzM3MjQzMn0.9XmSW8cvNX7CWFQf5KCR0wDdBUXik7kzd80iLHEh_CQ"  // ← ajoute cette ligne
-        },
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + ANON_KEY
+      },
       body: JSON.stringify({ token }),
     });
     if (!response.ok) {
-      // Le lien a expiré pendant le visionnage : on coupe tout.
       mainContainer.innerHTML = '<div class="status-message">Votre accès à cette page a expiré.</div>';
     }
   }
 
-  // ============================================
-  // 2. AFFICHAGE DU CONTENU (vidéo + PDF)
-  // ============================================
   function renderContent(data) {
-  mainContainer.innerHTML = `
-  <header><h1>Présentation des normes de l'entreprise</h1></header>
+    mainContainer.innerHTML = `
+      <header><h1>Présentation des normes de l'entreprise</h1></header>
 
-  <div class="video-wrapper" id="videoWrapper">
-    <div id="videoRatio" style="padding-top:56.25%; position:relative;">
-      <iframe
-        id="mainVideo"
-        src="https://drive.google.com/file/d/1zCPfjwwkhLRst73Yz-sNH0XHwnK604-G/preview"
-        style="position:absolute;top:0;left:0;width:100%;height:100%;"
-        frameborder="0"
-        allow="autoplay">
-      </iframe>
-    </div>
-  </div>
-  <button class="video-fullscreen-btn" id="fullscreenBtn" onclick="toggleFauxFullscreen()">
-    ⛶ Agrandir la vidéo
-  </button>
+      <div class="video-wrapper" id="videoWrapper">
+        <div id="videoRatio" style="padding-top:56.25%; position:relative;">
+          <iframe
+            id="mainVideo"
+            src="https://drive.google.com/file/d/1zCPfjwwkhLRst73Yz-sNH0XHwnK604-G/preview"
+            style="position:absolute;top:0;left:0;width:100%;height:100%;"
+            frameborder="0"
+            allow="autoplay">
+          </iframe>
+        </div>
+      </div>
 
-  <div class="pdf-section" id="pdfSection"></div>
-`;
+      <button class="video-fullscreen-btn" id="fullscreenBtn" onclick="toggleFauxFullscreen()">
+        ⛶ Agrandir la vidéo
+      </button>
 
-    // Watermarks répétés sur la vidéo (plusieurs positions pour gêner
-    // tout recadrage d'une capture)
+      <div class="pdf-section" id="pdfSection"></div>
+    `;
+
     addWatermarks("videoWrapper", data.animatorName);
 
-    // Affichage des pages du PDF (en images, jamais le PDF lui-même)
     const pdfSection = document.getElementById("pdfSection");
     data.pdfPageUrls.forEach((url, i) => {
       const pageDiv = document.createElement("div");
@@ -246,44 +224,40 @@
       addWatermarks(pageDiv, data.animatorName, true);
     });
   }
+
+  // ============================================
+  // FAUX PLEIN ÉCRAN
+  // ============================================
   function toggleFauxFullscreen() {
-  const wrapper = document.getElementById("videoWrapper");
-  const ratio = document.getElementById("videoRatio");
-  const btn = document.getElementById("fullscreenBtn");
-  const isFullscreen = wrapper.classList.toggle("faux-fullscreen");
+    const wrapper = document.getElementById("videoWrapper");
+    const btn = document.getElementById("fullscreenBtn");
+    const isFullscreen = wrapper.classList.toggle("faux-fullscreen");
 
-  if (isFullscreen) {
-    // Annule le padding-top inline qui écrasait le CSS
-    ratio.style.paddingTop = "0";
-    ratio.style.position = "static";
-    ratio.style.width = "100%";
-    ratio.style.height = "100%";
-
-    btn.textContent = "✕ Réduire la vidéo";
-    btn.style.cssText = `
-      position: fixed;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1002;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-    `;
-    document.body.style.overflow = "hidden";
-  } else {
-    // Remet le padding-top inline pour le ratio 16:9 normal
-    ratio.style.paddingTop = "56.25%";
-    ratio.style.position = "relative";
-    ratio.style.width = "";
-    ratio.style.height = "";
-
-    btn.textContent = "⛶ Agrandir la vidéo";
-    btn.style.cssText = "";
-    document.body.style.overflow = "";
+    if (isFullscreen) {
+      btn.textContent = "✕ Réduire la vidéo";
+      btn.style.cssText = `
+        position: fixed;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1002;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+      `;
+      document.body.style.overflow = "hidden";
+    } else {
+      btn.textContent = "⛶ Agrandir la vidéo";
+      btn.style.cssText = "";
+      document.body.style.overflow = "";
+    }
   }
-}
 
-  // Touche Échap pour sortir du mode agrandi
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       const wrapper = document.getElementById("videoWrapper");
@@ -292,16 +266,15 @@
       }
     }
   });
+
   // ============================================
-  // 3. WATERMARK DYNAMIQUE (nom + heure en direct)
+  // WATERMARK
   // ============================================
-  function addWatermarks(containerOrId, name, isLocal) {
+  function addWatermarks(containerOrId, name) {
     const container = typeof containerOrId === "string"
       ? document.getElementById(containerOrId)
       : containerOrId;
 
-    // 3 watermarks répartis pour que le recadrage d'une photo ne les
-    // élimine pas facilement
     const positions = [
       { top: "10%", left: "5%" },
       { top: "50%", left: "60%" },
@@ -313,7 +286,7 @@
       wm.className = "watermark";
       wm.style.top = pos.top;
       wm.style.left = pos.left;
-      container.style.position = container.style.position || "relative";
+      container.style.position = "relative";
       container.appendChild(wm);
       updateWatermarkText(wm, name);
     });
@@ -324,7 +297,6 @@
     el.textContent = `${name} — ${now}`;
   }
 
-  // Met à jour l'heure affichée toutes les secondes
   setInterval(() => {
     document.querySelectorAll(".watermark").forEach(el => {
       const name = el.textContent.split(" — ")[0];
@@ -333,26 +305,20 @@
   }, 1000);
 
   // ============================================
-  // 4. PROTECTIONS ANTI-CAPTURE / ANTI-TÉLÉCHARGEMENT
+  // PROTECTIONS
   // ============================================
-
-  // Bloque le clic droit (menu contextuel)
   document.addEventListener("contextmenu", (e) => e.preventDefault());
-
-  // Bloque le glisser-déposer des images/vidéos
   document.addEventListener("dragstart", (e) => e.preventDefault());
 
-  // Bloque les raccourcis clavier sensibles
   document.addEventListener("keydown", (e) => {
     const blockedCombos = [
-      { ctrl: true, key: "s" },       // Enregistrer la page
-      { ctrl: true, key: "p" },       // Imprimer
-      { ctrl: true, shift: true, key: "i" }, // DevTools
-      { ctrl: true, shift: true, key: "j" }, // Console
-      { ctrl: true, shift: true, key: "c" }, // Inspecteur
-      { ctrl: true, key: "u" },       // Voir source
+      { ctrl: true, key: "s" },
+      { ctrl: true, key: "p" },
+      { ctrl: true, shift: true, key: "i" },
+      { ctrl: true, shift: true, key: "j" },
+      { ctrl: true, shift: true, key: "c" },
+      { ctrl: true, key: "u" },
     ];
-
     for (const combo of blockedCombos) {
       const ctrlMatch = combo.ctrl ? (e.ctrlKey || e.metaKey) : true;
       const shiftMatch = combo.shift ? e.shiftKey : true;
@@ -361,25 +327,15 @@
         return;
       }
     }
-
-    // F12 (DevTools)
-    if (e.key === "F12") {
-      e.preventDefault();
-    }
+    if (e.key === "F12") e.preventDefault();
   });
 
-  // Pause automatique de la vidéo quand l'onglet perd le focus
-  // (utile si quelqu'un switch vers un logiciel d'enregistrement d'écran)
   document.addEventListener("visibilitychange", () => {
     const video = document.getElementById("mainVideo");
-    if (document.hidden && video && !video.paused) {
-      video.pause();
-    }
+    if (document.hidden && video && !video.paused) video.pause();
   });
 
-  // Détection basique d'ouverture des DevTools (par différence de taille
-  // fenêtre interne/externe). Imparfait mais dissuasif.
-  let devtoolsCheckInterval = setInterval(() => {
+  setInterval(() => {
     const threshold = 160;
     const widthDiff = window.outerWidth - window.innerWidth;
     const heightDiff = window.outerHeight - window.innerHeight;
