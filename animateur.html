@@ -335,6 +335,10 @@
     if (document.hidden && video && !video.paused) video.pause();
   });
 
+  // Détection DevTools uniquement sur desktop (inutile et problématique sur mobile)
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+if (!isMobile) {
   setInterval(() => {
     const threshold = 160;
     const widthDiff = window.outerWidth - window.innerWidth;
@@ -347,6 +351,7 @@
       document.getElementById("blockOverlay").classList.remove("active");
     }
   }, 1000);
+}
 </script>
 
 </body>
