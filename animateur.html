@@ -112,24 +112,10 @@
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100dvh; /* mobile-friendly, gère la barre d'adresse */
-  height: 100vh;  /* fallback pour vieux navigateurs */
+  height: 100vh;
   z-index: 1000;
   border-radius: 0;
   background: black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.video-wrapper.faux-fullscreen > div:first-child {
-  padding-top: 0 !important;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
 }
 
 .video-wrapper.faux-fullscreen iframe {
@@ -139,7 +125,7 @@
   width: 100%;
   height: 100%;
 }
-}
+
 
 </style>
 </head>
@@ -226,25 +212,25 @@
   // ============================================
   function renderContent(data) {
   mainContainer.innerHTML = `
-    <header><h1>Présentation des normes de l'entreprise</h1></header>
+  <header><h1>Présentation des normes de l'entreprise</h1></header>
 
-    <div class="video-wrapper" id="videoWrapper">
-      <div style="padding:56.25% 0 0 0; position:relative;">
-        <iframe
-          id="mainVideo"
-          src="https://drive.google.com/file/d/1zCPfjwwkhLRst73Yz-sNH0XHwnK604-G/preview"
-          style="position:absolute;top:0;left:0;width:100%;height:100%;"
-          frameborder="0"
-          allow="autoplay">
-        </iframe>
-      </div>
+  <div class="video-wrapper" id="videoWrapper">
+    <div id="videoRatio" style="padding-top:56.25%; position:relative;">
+      <iframe
+        id="mainVideo"
+        src="https://drive.google.com/file/d/1zCPfjwwkhLRst73Yz-sNH0XHwnK604-G/preview"
+        style="position:absolute;top:0;left:0;width:100%;height:100%;"
+        frameborder="0"
+        allow="autoplay">
+      </iframe>
     </div>
-    <button class="video-fullscreen-btn" onclick="toggleFauxFullscreen()">
-      ⛶ Agrandir la vidéo
-    </button>
+  </div>
+  <button class="video-fullscreen-btn" id="fullscreenBtn" onclick="toggleFauxFullscreen()">
+    ⛶ Agrandir la vidéo
+  </button>
 
-    <div class="pdf-section" id="pdfSection"></div>
-  `;
+  <div class="pdf-section" id="pdfSection"></div>
+`;
 
     // Watermarks répétés sur la vidéo (plusieurs positions pour gêner
     // tout recadrage d'une capture)
@@ -262,13 +248,18 @@
   }
   function toggleFauxFullscreen() {
   const wrapper = document.getElementById("videoWrapper");
-  const btn = document.querySelector(".video-fullscreen-btn");
+  const ratio = document.getElementById("videoRatio");
+  const btn = document.getElementById("fullscreenBtn");
   const isFullscreen = wrapper.classList.toggle("faux-fullscreen");
 
-  btn.textContent = isFullscreen ? "✕ Réduire la vidéo" : "⛶ Agrandir la vidéo";
-
-  // En mode agrandi, le bouton flotte en haut au centre par-dessus la vidéo
   if (isFullscreen) {
+    // Annule le padding-top inline qui écrasait le CSS
+    ratio.style.paddingTop = "0";
+    ratio.style.position = "static";
+    ratio.style.width = "100%";
+    ratio.style.height = "100%";
+
+    btn.textContent = "✕ Réduire la vidéo";
     btn.style.cssText = `
       position: fixed;
       top: 12px;
@@ -278,11 +269,18 @@
       background: rgba(0,0,0,0.6);
       backdrop-filter: blur(4px);
     `;
+    document.body.style.overflow = "hidden";
   } else {
-    btn.style.cssText = "";
-  }
+    // Remet le padding-top inline pour le ratio 16:9 normal
+    ratio.style.paddingTop = "56.25%";
+    ratio.style.position = "relative";
+    ratio.style.width = "";
+    ratio.style.height = "";
 
-  document.body.style.overflow = isFullscreen ? "hidden" : "";
+    btn.textContent = "⛶ Agrandir la vidéo";
+    btn.style.cssText = "";
+    document.body.style.overflow = "";
+  }
 }
 
   // Touche Échap pour sortir du mode agrandi
