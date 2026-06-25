@@ -92,6 +92,40 @@
     padding: 80px 20px;
     font-size: 16px;
   }
+
+  .video-fullscreen-btn {
+  display: block;
+  margin: 8px auto 0;
+  padding: 8px 20px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.video-fullscreen-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* Mode "plein écran fenêtré" : la vidéo prend toute la fenêtre */
+.video-wrapper.faux-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  border-radius: 0;
+  width: 100%;
+  height: 100%;
+}
+.video-wrapper.faux-fullscreen iframe {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0; left: 0;
+}
+.video-wrapper.faux-fullscreen > div:first-child {
+  padding-top: 0 !important;
+  height: 100%;
+}
+
 </style>
 </head>
 <body>
@@ -176,24 +210,26 @@
   // 2. AFFICHAGE DU CONTENU (vidéo + PDF)
   // ============================================
   function renderContent(data) {
-    mainContainer.innerHTML = `
-      <header><h1>Présentation des normes de l'entreprise</h1></header>
+  mainContainer.innerHTML = `
+    <header><h1>Présentation des normes de l'entreprise</h1></header>
 
-     <div class="video-wrapper" id="videoWrapper">
-        <div style="padding:56.25% 0 0 0; position:relative;">
-            <iframe
-            id="mainVideo"
-            src="https://drive.google.com/file/d/1zCPfjwwkhLRst73Yz-sNH0XHwnK604-G/preview"
-            style="position:absolute;top:0;left:0;width:100%;height:100%;"
-            frameborder="0"
-            allow="autoplay"
-            allowfullscreen>
-            </iframe>
-        </div>
+    <div class="video-wrapper" id="videoWrapper">
+      <div style="padding:56.25% 0 0 0; position:relative;">
+        <iframe
+          id="mainVideo"
+          src="https://drive.google.com/file/d/1zCPfjwwkhLRst73Yz-sNH0XHwnK604-G/preview"
+          style="position:absolute;top:0;left:0;width:100%;height:100%;"
+          frameborder="0"
+          allow="autoplay">
+        </iframe>
+      </div>
     </div>
+    <button class="video-fullscreen-btn" onclick="toggleFauxFullscreen()">
+      ⛶ Agrandir la vidéo
+    </button>
 
-      <div class="pdf-section" id="pdfSection"></div>
-    `;
+    <div class="pdf-section" id="pdfSection"></div>
+  `;
 
     // Watermarks répétés sur la vidéo (plusieurs positions pour gêner
     // tout recadrage d'une capture)
@@ -209,7 +245,25 @@
       addWatermarks(pageDiv, data.animatorName, true);
     });
   }
+  function toggleFauxFullscreen() {
+    const wrapper = document.getElementById("videoWrapper");
+    const btn = document.querySelector(".video-fullscreen-btn");
+    const isFullscreen = wrapper.classList.toggle("faux-fullscreen");
+    btn.textContent = isFullscreen ? "✕ Réduire la vidéo" : "⛶ Agrandir la vidéo";
 
+    // Empêche le scroll de la page en arrière-plan quand la vidéo est agrandie
+    document.body.style.overflow = isFullscreen ? "hidden" : "";
+  }
+
+  // Touche Échap pour sortir du mode agrandi
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const wrapper = document.getElementById("videoWrapper");
+      if (wrapper && wrapper.classList.contains("faux-fullscreen")) {
+        toggleFauxFullscreen();
+      }
+    }
+  });
   // ============================================
   // 3. WATERMARK DYNAMIQUE (nom + heure en direct)
   // ============================================
